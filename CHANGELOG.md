@@ -2,6 +2,8 @@
 
 ## 2026-09-08
 
+- Added an SVG favicon extracted from the existing round ChromaForge logo and linked it on the home page and all eight tool pages. Verified SVG markup and each page's relative asset path.
+
 - Updated configuration to prefer `.env` beside `index.html`, as requested. Added a local PHP router that blocks secret-file downloads, Apache protection, and CloudPanel NGINX rules to apply before deployment. Verified root configuration loading, blocked HTTP access to `.env`, and existing AI tests. CloudPanel rules have not been applied remotely.
 
 - Added `.env.example` and a private `.env` loader with CloudPanel setup instructions. The default file lives in an application-name-private sibling directory; files inside the public directory are rejected. Verified private-file loading, placeholder behavior, environment precedence, and path rejection with mocked AI requests.
