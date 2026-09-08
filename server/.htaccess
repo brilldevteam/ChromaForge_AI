@@ -1,0 +1,11 @@
+# Protect license data file
+<Files "licenses.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# Allow PHP execution
+<Files "verify.php">
+    Order Allow,Deny
+    Allow from all
+</Files>

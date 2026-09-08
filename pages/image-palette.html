@@ -1,0 +1,234 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Image to Palette — ChromaForge AI</title>
+<meta name="author" content="ChromaForge AI">
+<meta name="description" content="Extract beautiful color schemes from any image with deep pixel-level analysis.">
+<script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['DM Sans'],mono:['Space Mono']},colors:{brand:{500:'#6366f1'},surface:{light:'#f8fafc',dark:'#0c0c0f'},card:{light:'#fff',dark:'#16161a'}}}}}</script>
+<link rel="stylesheet" href="../css/style.css"><script src="../js/config.js"></script><script src="../js/license.js"></script><script src="../js/core.min.js"></script><script src="../js/whitelabel.js"></script>
+<style>@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}</style>
+</head>
+<body class="bg-surface-light text-slate-800 dark:bg-surface-dark dark:text-slate-200"><div class="noise-overlay"></div>
+<header class="fixed top-0 left-0 z-50 w-full bg-white/80 dark:bg-card-dark/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800"><nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3"><div class="flex items-center gap-4"><a href="../index.html" class="text-slate-500 hover:text-brand-500 text-sm"><i class="fa-solid fa-arrow-left mr-1"></i>Home</a><span class="text-slate-300 dark:text-slate-700">|</span><span class="text-lg font-bold"><span class="gradient-text">Image</span> to Palette</span></div><button onclick="CFUtils.toggleTheme()" class="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><i id="theme-icon" class="fa-solid fa-moon text-slate-600 text-sm"></i></button></nav></header>
+<main class="pt-24 pb-20 max-w-5xl mx-auto px-6">
+
+<!-- Upload -->
+<div id="upload-area" class="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-2xl p-16 text-center hover:border-brand-500 transition-colors cursor-pointer mb-8"
+    ondragover="event.preventDefault();this.classList.add('border-brand-500','bg-brand-500/5')"
+    ondragleave="this.classList.remove('border-brand-500','bg-brand-500/5')"
+    ondrop="event.preventDefault();this.classList.remove('border-brand-500','bg-brand-500/5');handleFile(event.dataTransfer.files[0])">
+    <input type="file" id="fi" accept=".jpg,.jpeg,.png,.webp" class="hidden" onchange="handleFile(this.files[0])">
+    <label for="fi" class="cursor-pointer">
+        <div class="mx-auto mb-4 h-16 w-16 rounded-full bg-brand-500/10 flex items-center justify-center">
+            <i class="fa-solid fa-cloud-arrow-up text-2xl text-brand-500"></i>
+        </div>
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Drop an image or click to upload</h3>
+        <p class="text-sm text-slate-500">JPG, PNG, WEBP — max 8MB</p>
+    </label>
+</div>
+
+<!-- Loading -->
+<div id="loader" class="hidden text-center py-12">
+    <div class="cf-spinner mx-auto mb-4"></div>
+    <p class="text-sm text-slate-500">Extracting colors...</p>
+</div>
+
+<!-- Results -->
+<div id="results" class="hidden">
+    <div class="flex items-center justify-between mb-4">
+        <h2 class="text-xl font-bold text-slate-900 dark:text-white">Extracted Colors</h2>
+        <button onclick="resetAll()" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm text-slate-500 hover:text-red-500 hover:border-red-500 transition-colors">
+            <i class="fa-solid fa-rotate-left mr-1"></i>Reset
+        </button>
+    </div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="lg:col-span-1">
+            <img id="preview" class="w-full rounded-xl shadow-lg">
+        </div>
+        <div class="lg:col-span-2">
+            <div id="colors" class="grid grid-cols-2 sm:grid-cols-3 gap-3"></div>
+        </div>
+    </div>
+
+    <!-- Gradient from palette -->
+    <div class="mb-8 p-5 rounded-xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800">
+        <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-bold text-slate-900 dark:text-white">Gradient from Image</h3>
+            <div class="flex gap-2">
+                <button onclick="shuffleGrad()" class="text-xs text-slate-500 hover:text-brand-500"><i class="fa-solid fa-shuffle mr-1"></i>Shuffle</button>
+                <button onclick="CFUtils.copyText('background: linear-gradient(to right, '+grad1+', '+grad2+');')" class="text-xs text-brand-500 font-semibold"><i class="fa-regular fa-copy mr-1"></i>CSS</button>
+            </div>
+        </div>
+        <div id="grad-preview" class="h-20 rounded-xl mb-3" style="background:linear-gradient(to right,#333,#666)"></div>
+        <div class="flex items-center gap-3 text-xs">
+            <div class="flex items-center gap-1.5"><div id="gd1" class="w-5 h-5 rounded-full border border-slate-200 shadow-sm"></div><span id="gl1" class="font-mono text-slate-400"></span></div>
+            <div class="flex-1 h-px bg-slate-200 dark:bg-slate-700"></div>
+            <div class="flex items-center gap-1.5"><span id="gl2" class="font-mono text-slate-400"></span><div id="gd2" class="w-5 h-5 rounded-full border border-slate-200 shadow-sm"></div></div>
+        </div>
+    </div>
+
+    <!-- Export -->
+    <div class="flex flex-wrap gap-3">
+        <button onclick="expCSS()" class="px-4 py-2.5 rounded-lg bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:text-brand-500 hover:border-brand-500 transition-colors"><i class="fa-solid fa-code mr-2"></i>CSS</button>
+        <button onclick="expJSON()" class="px-4 py-2.5 rounded-lg bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:text-brand-500 hover:border-brand-500 transition-colors"><i class="fa-solid fa-brackets-curly mr-2"></i>JSON</button>
+        <button onclick="expTailwind()" class="px-4 py-2.5 rounded-lg bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:text-brand-500 hover:border-brand-500 transition-colors"><i class="fa-solid fa-wind mr-2"></i>Tailwind</button>
+        <a href="brand-board.html" class="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-500 to-pink-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity"><i class="fa-solid fa-object-group mr-2"></i>Brand Board →</a>
+    </div>
+</div>
+</main>
+<div id="cf-toast" class="translate-y-20 opacity-0"></div>
+<script>
+let pal = [];
+let grad1 = '#000', grad2 = '#fff';
+
+document.addEventListener('DOMContentLoaded', () => {
+    CFUtils.initTheme();
+});
+
+function handleFile(file) {
+    if (!file) return;
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+        CFUtils.showToast('Unsupported file type. Please upload JPG, PNG, or WEBP only.', 'error');
+        return;
+    }
+
+    // Validate file size (8MB max)
+    const maxSize = 8 * 1024 * 1024;
+    if (file.size > maxSize) {
+        const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+        CFUtils.showToast('File too large (' + sizeMB + 'MB). Maximum allowed is 8MB.', 'error');
+        return;
+    }
+
+    // Show loader
+    document.getElementById('upload-area').classList.add('hidden');
+    document.getElementById('loader').classList.remove('hidden');
+    document.getElementById('results').classList.add('hidden');
+
+    const reader = new FileReader();
+    reader.onerror = () => {
+        CFUtils.showToast('Failed to read file', 'error');
+        resetAll();
+    };
+    reader.onload = (e) => {
+        // Create a fresh image element (avoid crossOrigin issues)
+        const img = new Image();
+        img.onload = () => {
+            // Small delay to ensure image is fully decoded
+            setTimeout(() => {
+                extractColors(img, e.target.result);
+            }, 150);
+        };
+        img.onerror = () => {
+            CFUtils.showToast('Failed to load image', 'error');
+            resetAll();
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+
+function extractColors(imgEl, dataUrl) {
+    try {
+        const colorThief = new ColorThief();
+
+        // Get dominant + palette
+        const rawPalette = colorThief.getPalette(imgEl, 10);
+        if (!rawPalette || rawPalette.length === 0) {
+            throw new Error('No colors found');
+        }
+
+        pal = rawPalette.map(rgb => chroma(rgb[0], rgb[1], rgb[2]).hex());
+
+        // Set gradient defaults
+        grad1 = pal[0];
+        grad2 = pal[1] || pal[0];
+
+        // Show preview image
+        document.getElementById('preview').src = dataUrl;
+
+        // Render
+        renderColors();
+        updateGradient();
+
+        // Show results
+        document.getElementById('loader').classList.add('hidden');
+        document.getElementById('results').classList.remove('hidden');
+
+        CFUtils.showToast('Extracted ' + pal.length + ' colors!');
+    } catch (err) {
+        console.error('Extraction error:', err);
+        CFUtils.showToast('Failed to extract colors. Try a different image.', 'error');
+        resetAll();
+    }
+}
+
+function renderColors() {
+    const container = document.getElementById('colors');
+    container.innerHTML = pal.map((hex, i) => {
+        const name = CFUtils.getColorName(hex);
+        const wcW = chroma.contrast(hex, 'white').toFixed(1);
+        const wcB = chroma.contrast(hex, 'black').toFixed(1);
+        const passW = parseFloat(wcW) >= 4.5;
+        const passB = parseFloat(wcB) >= 4.5;
+
+        return `<div class="group rounded-xl overflow-hidden bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:-translate-y-1 hover:shadow-lg transition-all cursor-pointer"
+            onclick="CFUtils.copyText('${hex}')"
+            style="animation:fadeUp 0.4s ease forwards;animation-delay:${i * 60}ms;opacity:0">
+            <div class="h-20 relative" style="background:${hex}">
+                ${i === 0 ? '<span class="absolute top-2 right-2 px-2 py-0.5 rounded text-[9px] font-bold bg-white/90 text-slate-800">DOMINANT</span>' : ''}
+                <div class="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <i class="fa-regular fa-copy ${chroma(hex).luminance() > 0.5 ? 'text-slate-700' : 'text-white'}"></i>
+                </div>
+            </div>
+            <div class="p-3">
+                <div class="font-bold text-sm text-slate-900 dark:text-white">${name}</div>
+                <div class="font-mono text-xs text-slate-400 uppercase mb-2">${hex}</div>
+                <div class="flex gap-1">
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${passW ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}">W ${wcW}</span>
+                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${passB ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}">B ${wcB}</span>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function updateGradient() {
+    document.getElementById('grad-preview').style.background = `linear-gradient(to right, ${grad1}, ${grad2})`;
+    document.getElementById('gd1').style.background = grad1;
+    document.getElementById('gd2').style.background = grad2;
+    document.getElementById('gl1').textContent = grad1;
+    document.getElementById('gl2').textContent = grad2;
+}
+
+function shuffleGrad() {
+    if (pal.length < 2) return;
+    grad1 = pal[Math.floor(Math.random() * pal.length)];
+    grad2 = pal[Math.floor(Math.random() * pal.length)];
+    while (grad2 === grad1 && pal.length > 1) {
+        grad2 = pal[Math.floor(Math.random() * pal.length)];
+    }
+    updateGradient();
+}
+
+function resetAll() {
+    pal = [];
+    grad1 = '#000'; grad2 = '#fff';
+    document.getElementById('upload-area').classList.remove('hidden');
+    document.getElementById('loader').classList.add('hidden');
+    document.getElementById('results').classList.add('hidden');
+    document.getElementById('fi').value = '';
+}
+
+function expCSS() {
+    CFUtils.copyText(`:root {\n${pal.map((c, i) => `  --color-${i + 1}: ${c};`).join('\n')}\n}`);
+}
+function expJSON() {
+    CFUtils.copyText(JSON.stringify({ name: 'Image Palette', colors: pal }, null, 2));
+}
+function expTailwind() {
+    CFUtils.copyText(`colors: {\n${pal.map((c, i) => `  'palette-${i + 1}': '${c}',`).join('\n')}\n}`);
+}
+</script>
+</body></html>

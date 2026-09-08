@@ -1,0 +1,52 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI Palette — ChromaForge AI</title>
+<meta name="author" content="ChromaForge AI">
+<meta name="description" content="AI-powered color palette generator. Describe your vision and get harmonious palettes instantly.">
+<script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script><link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['DM Sans'],mono:['Space Mono']},colors:{brand:{500:'#6366f1'},surface:{light:'#f8fafc',dark:'#0c0c0f'},card:{light:'#fff',dark:'#16161a'}}}}}</script>
+<link rel="stylesheet" href="../css/style.css"><script src="../js/config.js"></script><script src="../js/license.js"></script><script src="../js/core.min.js"></script><script src="../js/whitelabel.js"></script></head>
+<body class="bg-surface-light text-slate-800 dark:bg-surface-dark dark:text-slate-200"><div class="noise-overlay"></div>
+<header class="fixed top-0 left-0 z-50 w-full bg-white/80 dark:bg-card-dark/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800"><nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3"><div class="flex items-center gap-4"><a href="../index.html" class="text-slate-500 hover:text-brand-500 text-sm"><i class="fa-solid fa-arrow-left mr-1"></i>Home</a><span class="text-slate-300 dark:text-slate-700">|</span><span class="text-lg font-bold"><span class="gradient-text">AI Palette</span> Generator</span></div><button onclick="CFUtils.toggleTheme()" class="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><i id="theme-icon" class="fa-solid fa-moon text-slate-600 text-sm"></i></button></nav></header>
+<main class="pt-24 pb-20 max-w-5xl mx-auto px-6">
+<div class="text-center mb-12"><h1 class="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4"><span class="gradient-text">Describe</span> Your Vision</h1><p class="text-slate-500 mb-8">Tell us about your brand — AI generates the perfect palette.</p>
+<div class="max-w-2xl mx-auto flex gap-3"><input type="text" id="ai-prompt" placeholder="e.g. Luxury spa with earthy tones..." class="flex-1 px-5 py-3.5 rounded-xl bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-700 text-sm" onkeydown="if(event.key==='Enter')genPal()"><button onclick="genPal()" id="gen-btn" class="px-6 py-3.5 rounded-xl bg-gradient-to-r from-brand-500 to-pink-500 text-white font-semibold text-sm shadow-lg"><i class="fa-solid fa-wand-magic-sparkles mr-2"></i>Generate</button></div>
+<div class="flex flex-wrap justify-center gap-2 mt-4" id="quick-prompts"></div></div>
+<div class="flex items-center justify-between mb-6"><div class="flex gap-3"><select id="cnt" class="px-3 py-1.5 rounded-lg bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-700 text-sm"><option value="3">3</option><option value="4">4</option><option value="5" selected>5</option><option value="6">6</option><option value="7">7</option></select><button onclick="genRandom()" class="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm font-medium text-slate-500 hover:text-brand-500"><i class="fa-solid fa-shuffle mr-1"></i>Random</button></div>
+<div class="flex gap-2"><button onclick="CFUtils.copyText(':root{\\n'+pal.map((c,i)=>'  --color-'+(i+1)+': '+c+';').join('\\n')+'\\n}')" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-500 hover:text-brand-500">CSS</button><button onclick="CFUtils.copyText(JSON.stringify(pal,null,2))" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-500 hover:text-brand-500">JSON</button><a href="brand-board.html" class="px-3 py-2 rounded-lg bg-gradient-to-r from-brand-500 to-pink-500 text-white text-xs font-semibold">Brand Board →</a></div></div>
+<div id="pal-grid" class="grid grid-cols-5 gap-4 mb-16"></div>
+<h2 class="text-xl font-bold text-slate-900 dark:text-white mb-6">Color Theory Presets</h2><div id="presets" class="grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
+</main><div id="cf-toast" class="translate-y-20 opacity-0"></div>
+<script>
+let pal=[];
+document.addEventListener('DOMContentLoaded',()=>{CFUtils.initTheme();genRandom();buildPresets();
+const qp=['Luxury fashion brand','Children\'s toy brand','Organic food company','Cyberpunk gaming','Minimalist finance','Sunset beach resort'];
+document.getElementById('quick-prompts').innerHTML=qp.map(p=>`<button onclick="document.getElementById('ai-prompt').value='${p}';genPal()" class="px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-500 hover:bg-brand-500/10 hover:text-brand-500 transition-colors">${p}</button>`).join('')});
+async function genPal(){
+    const p=document.getElementById('ai-prompt').value.trim();
+    const n=+document.getElementById('cnt').value;
+    if(!p) return genRandom();
+    if(!CFAIEngine.isConfigured()){
+        CFUtils.showToast('AI unavailable. Using random palette.','info');
+        return genRandom();
+    }
+    const b=document.getElementById('gen-btn');
+    const origHTML=b.innerHTML;
+    b.innerHTML='<div class="cf-spinner mx-auto" style="width:16px;height:16px;border-width:2px"></div>';
+    b.disabled=true;
+    try{
+        pal=await CFAIEngine.generatePalette(p,n);
+        if(!pal||pal.length===0) throw new Error('No colors returned');
+        render();
+        CFUtils.showToast('AI palette generated!');
+    }catch(e){
+        console.error('AI Palette Error:',e);
+        CFUtils.showToast('AI Error: '+(e.message||'Unknown error. Check console.'),'error');
+        genRandom();
+    }finally{
+        b.innerHTML=origHTML;
+        b.disabled=false;
+    }
+}
+function genRandom(){const n=+document.getElementById('cnt').value,h=Math.random()*360;pal=chroma.scale([chroma.hsl(h,.7,.5),chroma.hsl((h+150)%360,.6,.5)]).mode('lch').colors(n);render()}
+function render(){const g=document.getElementById('pal-grid');g.style.gridTemplateColumns=`repeat(${Math.min(pal.length,6)},1fr)`;g.innerHTML=pal.map((c,i)=>`<div class="group rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer" style="animation:fadeUp .5s ease forwards;animation-delay:${i*.06}s;opacity:0" onclick="CFUtils.copyText('${c}')"><div class="h-40" style="background:${c}"></div><div class="p-4 bg-white dark:bg-card-dark border-t border-slate-100 dark:border-slate-800"><span class="font-mono text-sm font-bold text-slate-900 dark:text-white uppercase block">${c}</span><span class="text-xs text-slate-400">${CFUtils.getColorName(c)}</span></div></div>`).join('')}
+function buildPresets(){const b=chroma.random(),h=b.hsl()[0]||0;const R=[{n:'Monochromatic',c:chroma.scale([b.brighten(2),b,b.darken(2)]).mode('lch').colors(5)},{n:'Analogous',c:Array.from({length:5},(_,i)=>chroma.hsl((h-30+i*15)%360,.65,.5).hex())},{n:'Complementary',c:chroma.scale([b,b.set('hsl.h','+180')]).mode('lch').colors(5)},{n:'Triadic',c:chroma.scale([b,b.set('hsl.h','+120'),b.set('hsl.h','+240')]).mode('lch').colors(5)},{n:'Split Comp',c:[b.hex(),...chroma.scale([b.set('hsl.h','+150'),b.set('hsl.h','+210')]).colors(4)]},{n:'Tetradic',c:chroma.scale([b,b.set('hsl.h','+90'),b.set('hsl.h','+180'),b.set('hsl.h','+270')]).mode('lch').colors(5)}];document.getElementById('presets').innerHTML=R.map(r=>`<div class="p-4 rounded-xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:border-brand-500 cursor-pointer transition-colors" onclick="pal=${JSON.stringify(r.c)};render();CFUtils.showToast('${r.n} applied')"><div class="flex gap-1 mb-3">${r.c.map(c=>`<div class="flex-1 h-10 rounded-lg" style="background:${c}"></div>`).join('')}</div><span class="text-sm font-semibold text-slate-700 dark:text-slate-300">${r.n}</span></div>`).join('')}
+</script></body></html>

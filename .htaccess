@@ -1,0 +1,4 @@
+# Apache only. CloudPanel uses the separate NGINX rules instead.
+<FilesMatch "(?i)^\.">
+    Require all denied
+</FilesMatch>

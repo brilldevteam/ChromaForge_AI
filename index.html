@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChromaForge AI — Ultimate Brand Color Intelligence Suite</title>
+<meta name="author" content="ChromaForge AI">
+    <meta name="description" content="AI-powered color studio for designers and brand builders. Generate palettes, brand boards, gradients, and more.">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Space+Mono:wght@400;700&family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans:['DM Sans','sans-serif'], mono:['Space Mono','monospace'], display:['Playfair Display','serif'] },
+                    colors: {
+                        brand: {50:'#eef2ff',100:'#e0e7ff',200:'#c7d2fe',300:'#a5b4fc',400:'#818cf8',500:'#6366f1',600:'#4f46e5',700:'#4338ca'},
+                        surface: {light:'#f8fafc', dark:'#0c0c0f'},
+                        card: {light:'#ffffff', dark:'#16161a'}
+                    },
+                    animation: {
+                        'float':'float 6s ease-in-out infinite',
+                        'float-slow':'float 8s ease-in-out 1s infinite',
+                        'float-slower':'float 10s ease-in-out 2s infinite',
+                        'fade-up':'fadeUp 0.7s ease-out forwards',
+                        'spin-slow':'spin 25s linear infinite',
+                        'color-shift':'colorShift 8s ease infinite',
+                    },
+                    keyframes: {
+                        float:{'0%,100%':{transform:'translateY(0)'},'50%':{transform:'translateY(-14px)'}},
+                        fadeUp:{from:{opacity:'0',transform:'translateY(24px)'},to:{opacity:'1',transform:'translateY(0)'}},
+                        colorShift:{'0%,100%':{filter:'hue-rotate(0deg)'},'50%':{filter:'hue-rotate(30deg)'}},
+                    },
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/config.js"></script>
+    <script src="js/license.js"></script>
+    <script src="js/core.min.js"></script>
+    <script src="js/whitelabel.js"></script>
+    <style>
+        .hero-grid { display:grid; grid-template-columns: repeat(12,1fr); grid-template-rows: repeat(6,1fr); gap:6px; }
+        .hero-grid > div { border-radius:10px; transition: all 0.5s cubic-bezier(0.4,0,0.2,1); }
+        .hero-grid > div:hover { transform:scale(1.05); z-index:10; box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+        .tool-card { position:relative; overflow:hidden; }
+        .tool-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--card-accent); transform:scaleX(0); transform-origin:left; transition: transform 0.4s ease; }
+        .tool-card:hover::before { transform:scaleX(1); }
+        .tool-card .tool-icon { transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+        .tool-card:hover .tool-icon { transform: scale(1.15) rotate(-5deg); }
+        .stat-number { font-variant-numeric: tabular-nums; }
+        @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+        .marquee-track { animation: marquee 30s linear infinite; }
+        .marquee-track:hover { animation-play-state: paused; }
+    </style>
+</head>
+
+<body class="bg-surface-light text-slate-800 dark:bg-surface-dark dark:text-slate-200 transition-colors duration-300">
+    <div class="noise-overlay"></div>
+
+    <!-- ═══════════════════ HEADER ═══════════════════ -->
+    <header class="fixed top-0 left-0 z-50 w-full transition-all duration-300" id="site-header">
+        <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+            <a href="index.html" class="flex items-center gap-3 group">
+                <div class="relative h-9 w-9">
+                    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" class="transition-transform duration-500 group-hover:rotate-[30deg]">
+                        <defs><linearGradient id="lg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366f1"/><stop offset="50%" stop-color="#ec4899"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs>
+                        <circle cx="20" cy="20" r="18" stroke="url(#lg1)" stroke-width="3" fill="none"/>
+                        <circle cx="14" cy="16" r="5" fill="#6366f1"/><circle cx="26" cy="16" r="5" fill="#ec4899"/><circle cx="20" cy="26" r="5" fill="#f59e0b"/>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold tracking-tight"><span class="gradient-text">Chroma</span><span class="text-slate-800 dark:text-white">Forge</span><span class="text-[10px] font-semibold text-brand-500 ml-1 align-super">AI</span></span>
+            </a>
+            <div class="hidden md:flex items-center gap-6">
+                <a href="#tools" class="text-sm font-medium text-slate-500 hover:text-brand-500 transition-colors">Tools</a>
+                <a href="#features" class="text-sm font-medium text-slate-500 hover:text-brand-500 transition-colors">Features</a>
+                <a href="#how-it-works" class="text-sm font-medium text-slate-500 hover:text-brand-500 transition-colors">How It Works</a>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="CFUtils.toggleTheme()" class="h-9 w-9 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" title="Toggle theme"><i id="theme-icon" class="fa-solid fa-moon text-slate-600"></i></button>
+                <a href="pages/brand-board.html" class="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-brand-500 via-pink-500 to-amber-500 text-white text-sm font-semibold shadow-lg shadow-brand-500/25 hover:shadow-xl hover:shadow-brand-500/40 hover:-translate-y-0.5 transition-all duration-300"><i class="fa-solid fa-wand-magic-sparkles text-xs"></i>Brand Board</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <!-- ═══════════════════ HERO ═══════════════════ -->
+        <section class="relative min-h-screen flex items-center overflow-hidden">
+            <!-- Animated background orbs -->
+            <div class="absolute top-16 -left-40 w-[600px] h-[600px] bg-brand-500/15 rounded-full blur-[150px] animate-float"></div>
+            <div class="absolute bottom-16 -right-40 w-[500px] h-[500px] bg-pink-500/12 rounded-full blur-[130px] animate-float-slow"></div>
+            <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[400px] bg-amber-500/8 rounded-full blur-[160px] animate-float-slower"></div>
+
+            <div class="relative z-10 max-w-6xl mx-auto px-6 py-32 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <!-- Left: Copy -->
+                <div>
+                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-500 text-sm font-medium mb-8 opacity-0 animate-fade-up">
+                        <i class="fa-solid fa-bolt text-xs"></i>AI-Powered Color Intelligence
+                    </div>
+                    <h1 class="text-5xl sm:text-6xl lg:text-[4.2rem] font-bold tracking-tight leading-[1.08] mb-6 opacity-0 animate-fade-up" style="animation-delay:.1s">
+                        <span class="text-slate-900 dark:text-white">Design With</span><br>
+                        <span class="font-display italic gradient-text">Perfect Colors</span>
+                    </h1>
+                    <p class="text-lg text-slate-500 dark:text-slate-400 max-w-lg mb-10 leading-relaxed opacity-0 animate-fade-up" style="animation-delay:.2s">
+                        The complete brand color toolkit. AI palette generation, professional brand boards, WCAG accessibility, and 9+ export formats — all in one suite.
+                    </p>
+                    <div class="flex flex-wrap items-center gap-4 mb-12 opacity-0 animate-fade-up" style="animation-delay:.3s">
+                        <a href="#tools" class="group inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-semibold hover:-translate-y-0.5 hover:shadow-xl transition-all duration-300">
+                            Explore Tools
+                            <i class="fa-solid fa-arrow-right text-sm transition-transform group-hover:translate-x-1"></i>
+                        </a>
+                        <a href="pages/palette-ai.html" class="inline-flex items-center gap-2 px-7 py-3.5 rounded-full border-2 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold hover:border-brand-500 hover:text-brand-500 transition-all duration-300">
+                            <i class="fa-solid fa-sparkles text-xs"></i>Try AI Generator
+                        </a>
+                    </div>
+                    <!-- Stats row -->
+                    <div class="flex items-center gap-8 sm:gap-10 opacity-0 animate-fade-up" style="animation-delay:.4s">
+                        <div><div class="text-2xl font-bold text-slate-900 dark:text-white stat-number">8+</div><div class="text-[11px] text-slate-400 mt-0.5">Pro Tools</div></div>
+                        <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+                        <div><div class="text-2xl font-bold gradient-text stat-number">AI</div><div class="text-[11px] text-slate-400 mt-0.5">Powered</div></div>
+                        <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+                        <div><div class="text-2xl font-bold text-slate-900 dark:text-white stat-number">9+</div><div class="text-[11px] text-slate-400 mt-0.5">Export Formats</div></div>
+                        <div class="w-px h-8 bg-slate-200 dark:bg-slate-700"></div>
+                        <div><div class="text-2xl font-bold text-slate-900 dark:text-white">WCAG</div><div class="text-[11px] text-slate-400 mt-0.5">Compliant</div></div>
+                    </div>
+                </div>
+                <!-- Right: Interactive color grid -->
+                <div class="hidden lg:block opacity-0 animate-fade-up" style="animation-delay:.35s">
+                    <div class="hero-grid w-full aspect-square max-w-[420px] ml-auto animate-color-shift" id="hero-color-grid"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════ COLOR STRIP ═══════════════════ -->
+        <div class="flex h-1.5 overflow-hidden">
+            <div class="flex-1 bg-brand-500"></div><div class="flex-1 bg-violet-500"></div><div class="flex-1 bg-pink-500"></div><div class="flex-1 bg-rose-500"></div><div class="flex-1 bg-amber-500"></div><div class="flex-1 bg-emerald-500"></div><div class="flex-1 bg-sky-500"></div><div class="flex-1 bg-cyan-500"></div>
+        </div>
+
+        <!-- ═══════════════════ TOOLS SECTION ═══════════════════ -->
+        <section id="tools" class="py-24 md:py-32">
+            <div class="max-w-6xl mx-auto px-6">
+                <div class="text-center mb-16 reveal">
+                    <span class="text-xs font-bold uppercase tracking-[4px] text-brand-500">The Suite</span>
+                    <h2 class="text-4xl md:text-5xl font-bold tracking-tight mt-3 text-slate-900 dark:text-white">Every Color Tool <span class="font-display italic gradient-text">You Need</span></h2>
+                    <p class="text-lg text-slate-500 dark:text-slate-400 mt-4 max-w-xl mx-auto">From AI-powered generation to pixel-perfect export — a complete color design system.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                    <!-- AI Palette -->
+                    <a href="pages/palette-ai.html" class="tool-card reveal p-6 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5" style="--card-accent:linear-gradient(90deg,#6366f1,#8b5cf6)">
+                        <div class="tool-icon ai-pulse inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-brand-500 to-purple-600 text-white mb-5 shadow-lg shadow-brand-500/25"><i class="fa-solid fa-wand-magic-sparkles text-lg"></i></div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1.5">AI Palette Generator</h3>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">Describe your vision — AI creates perfect palettes with variations.</p>
+                        <div class="flex gap-1 mt-4"><span class="h-5 flex-1 rounded" style="background:#6366f1"></span><span class="h-5 flex-1 rounded" style="background:#8b5cf6"></span><span class="h-5 flex-1 rounded" style="background:#a78bfa"></span><span class="h-5 flex-1 rounded" style="background:#c4b5fd"></span><span class="h-5 flex-1 rounded" style="background:#ddd6fe"></span></div>
+                    </a>
+                    <!-- Brand Board -->
+                    <a href="pages/brand-board.html" class="tool-card reveal p-6 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5" style="--card-accent:linear-gradient(90deg,#ec4899,#f43f5e)">
+                        <div class="tool-icon ai-pulse inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500 to-rose-600 text-white mb-5 shadow-lg shadow-pink-500/25"><i class="fa-solid fa-object-group text-lg"></i></div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1.5">Brand Board Builder</h3>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">Professional lookbooks with logos, fonts & imagery. Export PDF/JPG.</p>
+                        <div class="mt-4 h-5 rounded bg-gradient-to-r from-pink-500 via-rose-400 to-amber-400"></div>
+                    </a>
+                    <!-- Color Harmony -->
+                    <a href="pages/harmony.html" class="tool-card reveal p-6 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5" style="--card-accent:linear-gradient(90deg,#8b5cf6,#a78bfa)">
+                        <div class="tool-icon inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 text-white mb-5 shadow-lg shadow-violet-500/25"><i class="fa-solid fa-palette text-lg"></i></div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1.5">Color Harmony</h3>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">7 color theory rules with live UI preview & accessibility scoring.</p>
+                        <div class="flex gap-1 mt-4"><span class="h-5 flex-1 rounded" style="background:#f43f5e"></span><span class="h-5 flex-1 rounded" style="background:#fb923c"></span><span class="h-5 flex-1 rounded" style="background:#facc15"></span><span class="h-5 flex-1 rounded" style="background:#4ade80"></span><span class="h-5 flex-1 rounded" style="background:#38bdf8"></span></div>
+                    </a>
+                    <!-- Image Palette -->
+                    <a href="pages/image-palette.html" class="tool-card reveal p-6 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5" style="--card-accent:linear-gradient(90deg,#0ea5e9,#06b6d4)">
+                        <div class="tool-icon inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-cyan-600 text-white mb-5 shadow-lg shadow-sky-500/25"><i class="fa-solid fa-image text-lg"></i></div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1.5">Image to Palette</h3>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">Extract color schemes from any image with deep pixel analysis.</p>
+                        <div class="flex gap-1 mt-4"><span class="h-5 flex-1 rounded" style="background:#1e293b"></span><span class="h-5 flex-1 rounded" style="background:#0ea5e9"></span><span class="h-5 flex-1 rounded" style="background:#7dd3fc"></span><span class="h-5 flex-1 rounded" style="background:#bae6fd"></span><span class="h-5 flex-1 rounded" style="background:#f0f9ff"></span></div>
+                    </a>
+                    <!-- Gradient Studio -->
+                    <a href="pages/gradient.html" class="tool-card reveal p-6 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5" style="--card-accent:linear-gradient(90deg,#f59e0b,#f97316)">
+                        <div class="tool-icon inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 text-white mb-5 shadow-lg shadow-amber-500/25"><i class="fa-solid fa-layer-group text-lg"></i></div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1.5">Gradient Studio</h3>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">Linear, radial, conic & mesh gradients with CSS/Swift/Flutter export.</p>
+                        <div class="mt-4 h-5 rounded bg-gradient-to-r from-amber-500 via-orange-400 to-rose-500"></div>
+                    </a>
+                    <!-- Contrast Checker -->
+                    <a href="pages/contrast.html" class="tool-card reveal p-6 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5" style="--card-accent:linear-gradient(90deg,#10b981,#14b8a6)">
+                        <div class="tool-icon inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white mb-5 shadow-lg shadow-emerald-500/25"><i class="fa-solid fa-circle-half-stroke text-lg"></i></div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1.5">Contrast Checker</h3>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">WCAG 2.1 AA/AAA compliance with suggestions & CVD simulation.</p>
+                        <div class="flex gap-1.5 mt-4"><span class="h-5 flex-1 rounded bg-emerald-500"></span><span class="h-5 flex-1 rounded bg-emerald-900"></span></div>
+                    </a>
+                    <!-- Color Inspector -->
+                    <a href="pages/inspector.html" class="tool-card reveal p-6 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5" style="--card-accent:linear-gradient(90deg,#06b6d4,#3b82f6)">
+                        <div class="tool-icon inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 text-white mb-5 shadow-lg shadow-cyan-500/25"><i class="fa-solid fa-magnifying-glass text-lg"></i></div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1.5">Color Inspector</h3>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">Tailwind scales, shades, tints, tones, and full color channel data.</p>
+                        <div class="flex gap-1 mt-4"><span class="h-5 flex-1 rounded" style="background:#e0f2fe"></span><span class="h-5 flex-1 rounded" style="background:#7dd3fc"></span><span class="h-5 flex-1 rounded" style="background:#0ea5e9"></span><span class="h-5 flex-1 rounded" style="background:#0369a1"></span><span class="h-5 flex-1 rounded" style="background:#0c4a6e"></span></div>
+                    </a>
+                    <!-- Export Center -->
+                    <a href="pages/export.html" class="tool-card reveal p-6 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5" style="--card-accent:linear-gradient(90deg,#f43f5e,#e11d48)">
+                        <div class="tool-icon inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-red-600 text-white mb-5 shadow-lg shadow-rose-500/25"><i class="fa-solid fa-file-export text-lg"></i></div>
+                        <h3 class="text-base font-bold text-slate-900 dark:text-white mb-1.5">Export Center</h3>
+                        <p class="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed">CSS, Tailwind, JSON, SVG, PNG, Figma, SwiftUI, Flutter — one click.</p>
+                        <div class="flex gap-1.5 mt-4 flex-wrap"><span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">CSS</span><span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">JSON</span><span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">SVG</span><span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">PNG</span><span class="px-2 py-0.5 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500">PDF</span></div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════ AI FEATURE HIGHLIGHT ═══════════════════ -->
+        <section id="features" class="py-24 md:py-32 relative overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-b from-brand-500/[0.03] via-transparent to-transparent dark:from-brand-500/[0.06]"></div>
+            <div class="max-w-6xl mx-auto px-6 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                    <div class="reveal">
+                        <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-brand-500/10 text-brand-500 text-xs font-bold uppercase tracking-widest mb-6"><i class="fa-solid fa-microchip"></i> AI-Powered</span>
+                        <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mb-5 leading-tight">Describe It.<br><span class="font-display italic gradient-text">We Create It.</span></h2>
+                        <p class="text-slate-500 dark:text-slate-400 mb-8 leading-relaxed text-lg">Tell the AI what you're building — "A luxury spa with earthy tones" or "A playful children's brand" — and watch as it generates complete, harmonious color systems.</p>
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3"><div class="mt-0.5 h-6 w-6 flex items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 flex-shrink-0"><i class="fa-solid fa-check text-xs"></i></div><span class="text-sm text-slate-600 dark:text-slate-300">AI palette generation from text descriptions</span></div>
+                            <div class="flex items-start gap-3"><div class="mt-0.5 h-6 w-6 flex items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 flex-shrink-0"><i class="fa-solid fa-check text-xs"></i></div><span class="text-sm text-slate-600 dark:text-slate-300">Smart brand color system with CMYK, RGB & HEX</span></div>
+                            <div class="flex items-start gap-3"><div class="mt-0.5 h-6 w-6 flex items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 flex-shrink-0"><i class="fa-solid fa-check text-xs"></i></div><span class="text-sm text-slate-600 dark:text-slate-300">Professional brand board PDF/JPG export</span></div>
+                            <div class="flex items-start gap-3"><div class="mt-0.5 h-6 w-6 flex items-center justify-center rounded-full bg-emerald-500/10 text-emerald-500 flex-shrink-0"><i class="fa-solid fa-check text-xs"></i></div><span class="text-sm text-slate-600 dark:text-slate-300">37+ Google Fonts with live preview</span></div>
+                        </div>
+                    </div>
+                    <div class="reveal">
+                        <div class="gradient-border">
+                            <div class="bg-white dark:bg-card-dark p-6 rounded-2xl">
+                                <div class="flex items-center gap-2 mb-5 text-sm text-slate-400"><i class="fa-solid fa-terminal text-brand-500"></i><span class="font-mono text-xs">AI Palette — "Luxury spa, earthy tones"</span></div>
+                                <div class="space-y-3" id="demo-palette"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════ HOW IT WORKS ═══════════════════ -->
+        <section id="how-it-works" class="py-24 md:py-32">
+            <div class="max-w-5xl mx-auto px-6">
+                <div class="text-center mb-16 reveal">
+                    <span class="text-xs font-bold uppercase tracking-[4px] text-pink-500">How It Works</span>
+                    <h2 class="text-4xl md:text-5xl font-bold tracking-tight mt-3 text-slate-900 dark:text-white">Three Steps to<br><span class="font-display italic gradient-text">Brand Perfection</span></h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="reveal text-center p-8 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all hover:-translate-y-1">
+                        <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-500 to-purple-500 text-white text-xl font-bold shadow-lg shadow-brand-500/25">1</div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Choose or Generate</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Pick a tool, describe your vision to AI, or upload an image — your palette materializes in seconds.</p>
+                    </div>
+                    <div class="reveal text-center p-8 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all hover:-translate-y-1">
+                        <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-pink-500 to-rose-500 text-white text-xl font-bold shadow-lg shadow-pink-500/25">2</div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Refine & Preview</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Fine-tune colors, check accessibility, preview on UI mockups, and build your complete brand board.</p>
+                    </div>
+                    <div class="reveal text-center p-8 rounded-2xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all hover:-translate-y-1">
+                        <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white text-xl font-bold shadow-lg shadow-amber-500/25">3</div>
+                        <h3 class="text-lg font-bold text-slate-900 dark:text-white mb-2">Export & Build</h3>
+                        <p class="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">Download as CSS, Tailwind, PDF brand board, PNG palette card, or a complete lookbook.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ═══════════════════ CTA ═══════════════════ -->
+        <section class="py-24">
+            <div class="max-w-4xl mx-auto px-6">
+                <div class="reveal rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 dark:from-slate-800 dark:via-slate-900 dark:to-black p-12 md:p-16 text-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-80 h-80 bg-brand-500/20 rounded-full blur-[100px]"></div>
+                    <div class="absolute bottom-0 left-0 w-64 h-64 bg-pink-500/15 rounded-full blur-[80px]"></div>
+                    <div class="relative z-10">
+                        <h2 class="text-3xl md:text-4xl font-bold text-white mb-4 tracking-tight">Ready to Create <span class="font-display italic">Stunning Brands?</span></h2>
+                        <p class="text-slate-400 mb-8 max-w-lg mx-auto">Start with any tool — no signup required. Your colors, your brand, your way.</p>
+                        <div class="flex flex-wrap justify-center gap-4">
+                            <a href="pages/palette-ai.html" class="inline-flex items-center gap-2 px-8 py-4 rounded-full bg-gradient-to-r from-brand-500 via-pink-500 to-amber-500 text-white font-bold shadow-xl shadow-brand-500/30 hover:-translate-y-0.5 hover:shadow-2xl transition-all duration-300"><i class="fa-solid fa-wand-magic-sparkles"></i>Start Creating</a>
+                            <a href="pages/brand-board.html" class="inline-flex items-center gap-2 px-8 py-4 rounded-full border-2 border-white/20 text-white font-semibold hover:bg-white/10 transition-all duration-300"><i class="fa-solid fa-object-group"></i>Brand Board</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ═══════════════════ FOOTER ═══════════════════ -->
+    <footer class="border-t border-slate-200 dark:border-slate-800 py-12 bg-white dark:bg-card-dark">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div class="flex items-center gap-2">
+                    <svg viewBox="0 0 40 40" fill="none" class="h-7 w-7"><defs><linearGradient id="lgf" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#6366f1"/><stop offset="50%" stop-color="#ec4899"/><stop offset="100%" stop-color="#f59e0b"/></linearGradient></defs><circle cx="20" cy="20" r="18" stroke="url(#lgf)" stroke-width="3" fill="none"/><circle cx="14" cy="16" r="5" fill="#6366f1"/><circle cx="26" cy="16" r="5" fill="#ec4899"/><circle cx="20" cy="26" r="5" fill="#f59e0b"/></svg>
+                    <span class="text-sm font-bold"><span class="gradient-text">Chroma</span>Forge <span class="text-brand-500 text-[10px]">AI</span></span>
+                </div>
+                <p class="text-xs text-slate-400 text-center">&copy; 2025 ChromaForge AI. All Rights Reserved. <span class="mx-1">·</span> v1.0.0</p>
+            </div>
+        </div>
+    </footer>
+
+    <div id="cf-toast" class="translate-y-20 opacity-0"></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        CFUtils.initTheme();
+
+        // Header scroll effect
+        const hd = document.getElementById('site-header');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 40) hd.classList.add('bg-white/80','dark:bg-[#0c0c0f]/80','backdrop-blur-xl','shadow-sm','border-b','border-slate-100/50','dark:border-slate-800/50');
+            else hd.classList.remove('bg-white/80','dark:bg-[#0c0c0f]/80','backdrop-blur-xl','shadow-sm','border-b','border-slate-100/50','dark:border-slate-800/50');
+        });
+
+        // Scroll reveal
+        const obs = new IntersectionObserver(entries => { entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }); }, { threshold: 0.08 });
+        document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+        // Hero color grid — generative
+        buildHeroGrid();
+
+        // Demo palette
+        buildDemoPalette();
+    });
+
+    function buildHeroGrid() {
+        const grid = document.getElementById('hero-color-grid');
+        if (!grid) return;
+        const palette = ['#6366f1','#8b5cf6','#a78bfa','#c4b5fd','#ec4899','#f472b6','#f9a8d4','#f59e0b','#fbbf24','#fcd34d','#10b981','#34d399','#0ea5e9','#38bdf8','#e2e8f0','#f1f5f9'];
+        const spans = [
+            {c:4,r:2},{c:3,r:2},{c:2,r:2},{c:3,r:2},{c:3,r:1},{c:2,r:1},{c:2,r:1},{c:5,r:1},{c:4,r:2},{c:4,r:2},{c:4,r:2},{c:6,r:1},{c:3,r:1},{c:3,r:1}
+        ];
+        grid.innerHTML = spans.map((s,i) => {
+            const c = palette[i % palette.length];
+            return `<div style="grid-column:span ${s.c};grid-row:span ${s.r};background:${c};opacity:${0.7+Math.random()*0.3}" class="cursor-pointer" onclick="CFUtils.copyText('${c}')"></div>`;
+        }).join('');
+    }
+
+    function buildDemoPalette() {
+        const colors = [
+            {hex:'#3D2B1F',name:'Espresso Earth'},
+            {hex:'#8B7355',name:'Warm Sand'},
+            {hex:'#C4A882',name:'Golden Oat'},
+            {hex:'#E8D5B7',name:'Soft Linen'},
+            {hex:'#4A7C59',name:'Forest Sage'}
+        ];
+        document.getElementById('demo-palette').innerHTML = colors.map(c => `
+            <div class="flex items-center gap-4 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer" onclick="CFUtils.copyText('${c.hex}')">
+                <div class="w-11 h-11 rounded-xl shadow-md flex-shrink-0" style="background:${c.hex}"></div>
+                <div class="flex-1"><div class="font-mono text-sm font-bold text-slate-900 dark:text-white">${c.hex.toUpperCase()}</div><div class="text-xs text-slate-400">${c.name}</div></div>
+                <i class="fa-regular fa-copy text-slate-300 text-xs"></i>
+            </div>
+        `).join('');
+    }
+    </script>
+</body>
+</html>

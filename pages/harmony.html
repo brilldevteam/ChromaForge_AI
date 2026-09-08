@@ -1,0 +1,358 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Color Harmony — ChromaForge AI</title>
+<meta name="author" content="ChromaForge AI">
+<meta name="description" content="Create perfect color combinations using 7 color theory rules with live UI preview and accessibility scoring.">
+<script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.4.2/chroma.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700;9..40,800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script>tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['DM Sans'],mono:['Space Mono']},colors:{brand:{500:'#6366f1'},surface:{light:'#f8fafc',dark:'#0c0c0f'},card:{light:'#fff',dark:'#16161a'}}}}}</script>
+<link rel="stylesheet" href="../css/style.css"><script src="../js/config.js"></script><script src="../js/license.js"></script><script src="../js/core.min.js"></script><script src="../js/whitelabel.js"></script>
+<style>
+.phone-frame{width:280px;margin:0 auto;border-radius:36px;border:6px solid #e2e8f0;background:#e2e8f0;box-shadow:0 20px 50px rgba(0,0,0,0.1);overflow:hidden;position:relative}
+.phone-frame::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:80px;height:6px;background:#cbd5e1;border-radius:3px;z-index:20}
+.phone-screen{border-radius:30px;overflow:hidden;background:#fff}
+.mock-tab{cursor:pointer;padding:8px 0;font-size:12px;font-weight:700;border-radius:8px;text-align:center;transition:all .2s}
+.mock-tab.active{background:rgba(99,102,241,0.15);color:#6366f1}
+.mock-tab:not(.active){color:#94a3b8}
+.mock-tab:not(.active):hover{color:#6366f1}
+.dark .mock-tab.active{background:rgba(255,255,255,0.12);color:#fff}
+.dark .mock-tab:not(.active){color:rgba(255,255,255,0.4)}
+.dark .mock-tab:not(.active):hover{color:rgba(255,255,255,0.7)}
+.dark .phone-frame{border-color:#1e1e2a;background:#1e1e2a;box-shadow:0 25px 60px rgba(0,0,0,0.5)}
+.dark .phone-frame::before{background:#2a2a3a}
+.color-row{display:flex;align-items:center;gap:10px;padding:8px 0}
+.color-row label{font-size:11px;color:rgba(255,255,255,0.5);width:90px;flex-shrink:0}
+.color-row .color-btn{flex:1;display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all .2s}
+.color-row .color-btn:hover{border-color:rgba(99,102,241,0.4)}
+.color-row .color-btn .dot{width:20px;height:20px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,0.15)}
+.color-row .color-btn span{font-family:'Space Mono',monospace;font-size:11px;color:rgba(255,255,255,0.7);text-transform:uppercase}
+</style>
+</head>
+<body class="bg-surface-light text-slate-800 dark:bg-surface-dark dark:text-slate-200"><div class="noise-overlay"></div>
+<header class="fixed top-0 left-0 z-50 w-full bg-white/80 dark:bg-card-dark/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800"><nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-3"><div class="flex items-center gap-4"><a href="../index.html" class="text-slate-500 hover:text-brand-500 text-sm"><i class="fa-solid fa-arrow-left mr-1"></i>Home</a><span class="text-slate-300 dark:text-slate-700">|</span><span class="text-lg font-bold"><span class="gradient-text">Color</span> Harmony</span></div><button onclick="CFUtils.toggleTheme()" class="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center"><i id="theme-icon" class="fa-solid fa-moon text-slate-600 text-sm"></i></button></nav></header>
+
+<main class="pt-24 pb-20 max-w-6xl mx-auto px-6">
+<!-- Controls Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+    <div class="p-4 rounded-xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800">
+        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2 block">Base Color</label>
+        <div class="flex items-center gap-3">
+            <input type="color" id="bc" value="#6366f1" class="h-10 w-10 rounded-lg cursor-pointer" oninput="S.base=this.value;gen()">
+            <input type="text" id="hi" value="6366f1" class="flex-1 px-3 py-2 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-sm uppercase" oninput="let v=this.value.trim();if(chroma.valid('#'+v)){S.base='#'+v;gen()}">
+            <button onclick="S.base=chroma.random().hex();gen()" class="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-sm text-slate-500 hover:text-brand-500 transition-colors"><i class="fa-solid fa-shuffle"></i></button>
+        </div>
+    </div>
+    <div class="p-4 rounded-xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800">
+        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2 block">Harmony Rule</label>
+        <select id="rule" class="w-full px-3 py-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold" onchange="S.rule=this.value;gen()">
+            <option value="mono">Monochromatic</option><option value="ana">Analogous</option><option value="comp" selected>Complementary</option><option value="split">Split Complementary</option><option value="tri">Triadic</option><option value="tet">Tetradic</option><option value="shade">Shades</option>
+        </select>
+    </div>
+    <div class="p-4 rounded-xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800">
+        <label class="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-2 block">Count: <span id="cd">5</span></label>
+        <input type="range" id="cs" min="3" max="10" value="5" class="w-full mt-2" oninput="S.count=+this.value;document.getElementById('cd').textContent=this.value;gen()">
+    </div>
+</div>
+
+<!-- Palette Grid -->
+<div id="pg" class="grid grid-cols-5 gap-3 mb-8"></div>
+
+<!-- Mockup Preview + Accessibility (side by side) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+    <!-- MOCKUP PREVIEW (new!) -->
+    <div class="p-6 rounded-2xl bg-white dark:bg-[#13131a] border border-slate-200 dark:border-white/5">
+        <div class="flex items-center gap-2 mb-1">
+            <div class="w-1 h-5 rounded-full bg-brand-500"></div>
+            <h3 class="text-base font-bold text-slate-900 dark:text-white">Mockup Preview</h3>
+        </div>
+        <p class="text-xs text-slate-400 dark:text-slate-500 mb-4">Customize colors for Profile & Web layouts.</p>
+
+        <!-- Tabs -->
+        <div class="flex gap-2 p-1 rounded-lg bg-slate-100 dark:bg-white/5 mb-4">
+            <div class="mock-tab flex-1 active" id="tab-profile" onclick="switchTab('profile')">Profile</div>
+            <div class="mock-tab flex-1" id="tab-website" onclick="switchTab('website')">Website</div>
+        </div>
+
+        <!-- Random Theme Button -->
+        <button onclick="randomMockup()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-brand-500 to-purple-600 text-white text-xs font-bold mb-4 hover:opacity-90 transition-opacity">
+            <i class="fa-solid fa-shuffle mr-1.5"></i> Generate Random Theme
+        </button>
+
+        <!-- Color Controls -->
+        <div class="space-y-1 mb-5">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="text-[10px] text-slate-500 dark:text-slate-500 block mb-1">Background</label>
+                    <div class="color-btn flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/8 cursor-pointer" onclick="pickMockColor('bg',this)">
+                        <div id="mc-bg-dot" class="dot w-5 h-5 rounded-full" style="background:#1a1a2e"></div>
+                        <span id="mc-bg-hex" class="font-mono text-[10px] text-slate-600 dark:text-slate-400">#1A1A2E</span>
+                        <input type="color" id="mc-bg" value="#1a1a2e" class="absolute opacity-0 w-0 h-0" onchange="setMockColor('bg',this.value)">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-500 block mb-1">Cover / Banner</label>
+                    <div class="color-btn flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/8 cursor-pointer" onclick="pickMockColor('cover',this)">
+                        <div id="mc-cover-dot" class="dot w-5 h-5 rounded-full" style="background:#6366f1"></div>
+                        <span id="mc-cover-hex" class="font-mono text-[10px] text-slate-600 dark:text-slate-400">#6366F1</span>
+                        <input type="color" id="mc-cover" value="#6366f1" class="absolute opacity-0 w-0 h-0" onchange="setMockColor('cover',this.value)">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-500 block mb-1">Primary Text</label>
+                    <div class="color-btn flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/8 cursor-pointer" onclick="pickMockColor('text',this)">
+                        <div id="mc-text-dot" class="dot w-5 h-5 rounded-full" style="background:#ffffff"></div>
+                        <span id="mc-text-hex" class="font-mono text-[10px] text-slate-600 dark:text-slate-400">#FFFFFF</span>
+                        <input type="color" id="mc-text" value="#ffffff" class="absolute opacity-0 w-0 h-0" onchange="setMockColor('text',this.value)">
+                    </div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-500 block mb-1">Button / Accent</label>
+                    <div class="color-btn flex items-center gap-2 p-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/8 cursor-pointer" onclick="pickMockColor('btn',this)">
+                        <div id="mc-btn-dot" class="dot w-5 h-5 rounded-full" style="background:#ec4899"></div>
+                        <span id="mc-btn-hex" class="font-mono text-[10px] text-slate-600 dark:text-slate-400">#EC4899</span>
+                        <input type="color" id="mc-btn" value="#ec4899" class="absolute opacity-0 w-0 h-0" onchange="setMockColor('btn',this.value)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phone Mockup -->
+        <div class="phone-frame">
+            <div class="phone-screen" id="phone-screen">
+                <!-- Profile View -->
+                <div id="view-profile">
+                    <div id="mock-cover" style="background:#6366f1;height:100px;position:relative">
+                        <div style="position:absolute;bottom:-30px;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;border:4px solid #fff;overflow:hidden;background:#ddd">
+                            <div style="width:100%;height:100%;background:linear-gradient(135deg,#a78bfa,#ec4899);display:flex;align-items:center;justify-content:center;font-size:24px">👤</div>
+                        </div>
+                    </div>
+                    <div id="mock-body" style="background:#1a1a2e;padding:44px 20px 24px;text-align:center;min-height:220px">
+                        <div id="mock-name" style="font-size:18px;font-weight:800;color:#fff;margin-bottom:2px">Creative Designer</div>
+                        <div style="font-size:11px;color:rgba(255,255,255,0.4);margin-bottom:16px">@chromaforge</div>
+                        <div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px">
+                            <div><div id="mock-stat1" style="font-size:16px;font-weight:800;color:#fff">1.2k</div><div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1px">Followers</div></div>
+                            <div><div id="mock-stat2" style="font-size:16px;font-weight:800;color:#fff">850</div><div style="font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:1px">Following</div></div>
+                        </div>
+                        <div style="display:flex;gap:8px;justify-content:center">
+                            <button id="mock-follow-btn" style="padding:10px 32px;border-radius:12px;font-size:13px;font-weight:700;border:none;cursor:pointer">Follow</button>
+                            <button id="mock-msg-btn" style="padding:10px 14px;border-radius:12px;font-size:13px;border:none;cursor:pointer;opacity:0.6">✉</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Website View -->
+                <div id="view-website" style="display:none">
+                    <div id="mock-w-header" style="background:#6366f1;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+                        <div style="font-size:14px;font-weight:800;color:#fff">MyBrand</div>
+                        <div style="display:flex;gap:12px"><div style="width:16px;height:2px;background:rgba(255,255,255,0.5);border-radius:1px"></div><div style="width:16px;height:2px;background:rgba(255,255,255,0.5);border-radius:1px"></div><div style="width:16px;height:2px;background:rgba(255,255,255,0.5);border-radius:1px"></div></div>
+                    </div>
+                    <div id="mock-w-hero" style="background:#6366f1;padding:20px;text-align:center">
+                        <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:6px">Welcome Home</div>
+                        <div style="font-size:10px;color:rgba(255,255,255,0.6);margin-bottom:14px">Build something amazing today</div>
+                        <button id="mock-w-btn" style="padding:8px 24px;border-radius:10px;font-size:11px;font-weight:700;border:none;cursor:pointer">Get Started</button>
+                    </div>
+                    <div id="mock-w-body" style="background:#1a1a2e;padding:16px 20px;min-height:150px">
+                        <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:14px;margin-bottom:10px">
+                            <div id="mock-w-title" style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px">Featured Section</div>
+                            <div style="font-size:10px;color:rgba(255,255,255,0.4);line-height:1.5">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</div>
+                        </div>
+                        <div style="display:flex;gap:8px">
+                            <div style="flex:1;background:rgba(255,255,255,0.05);border-radius:10px;padding:12px;text-align:center"><div id="mock-w-num1" style="font-size:18px;font-weight:800;color:#fff">42</div><div style="font-size:8px;color:rgba(255,255,255,0.3)">Projects</div></div>
+                            <div style="flex:1;background:rgba(255,255,255,0.05);border-radius:10px;padding:12px;text-align:center"><div id="mock-w-num2" style="font-size:18px;font-weight:800;color:#fff">97%</div><div style="font-size:8px;color:rgba(255,255,255,0.3)">Score</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Accessibility Panel -->
+    <div class="p-6 rounded-xl bg-white dark:bg-card-dark border border-slate-100 dark:border-slate-800">
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white mb-4">Accessibility Analysis</h3>
+        <div id="cl" class="space-y-2 mb-6"></div>
+        <h4 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">Color Blindness Simulation</h4>
+        <div class="space-y-2">
+            <div class="flex items-center gap-2"><span class="text-xs text-slate-400 w-24">Protanopia</span><div id="sp" class="flex flex-1 h-6 rounded overflow-hidden"></div></div>
+            <div class="flex items-center gap-2"><span class="text-xs text-slate-400 w-24">Deuteranopia</span><div id="sd" class="flex flex-1 h-6 rounded overflow-hidden"></div></div>
+            <div class="flex items-center gap-2"><span class="text-xs text-slate-400 w-24">Grayscale</span><div id="sg" class="flex flex-1 h-6 rounded overflow-hidden"></div></div>
+        </div>
+        <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <h4 class="text-xs font-bold text-slate-500 mb-3 uppercase tracking-wider">Luminance Graph</h4>
+            <div id="lum-graph" class="flex items-end gap-1 h-16"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Export -->
+<div class="flex flex-wrap gap-3">
+    <button onclick="CFUtils.copyText(':root {\n'+S.pal.map((c,i)=>'  --color-'+(i+1)+': '+c+';').join('\n')+'\n}')" class="px-4 py-2.5 rounded-lg bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:border-brand-500 hover:text-brand-500 transition-colors"><i class="fa-solid fa-code mr-2"></i>CSS</button>
+    <button onclick="CFUtils.copyText(JSON.stringify(S.pal,null,2))" class="px-4 py-2.5 rounded-lg bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:border-brand-500 hover:text-brand-500 transition-colors"><i class="fa-solid fa-brackets-curly mr-2"></i>JSON</button>
+    <button onclick="CFUtils.copyText('colors: {\n'+S.pal.map((c,i)=>'  brand-'+(i+1)+': \''+c+'\',').join('\n')+'\n}')" class="px-4 py-2.5 rounded-lg bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:border-brand-500 hover:text-brand-500 transition-colors"><i class="fa-solid fa-wind mr-2"></i>Tailwind</button>
+    <a href="brand-board.html" class="px-4 py-2.5 rounded-lg bg-gradient-to-r from-brand-500 to-pink-500 text-white text-sm font-semibold hover:opacity-90 transition-opacity"><i class="fa-solid fa-object-group mr-2"></i>Brand Board</a>
+</div>
+</main>
+
+<div id="cf-toast" class="translate-y-20 opacity-0"></div>
+
+<script>
+let S = { base:'#6366f1', rule:'comp', count:5, pal:[] };
+let mockColors = { bg:'#1a1a2e', cover:'#6366f1', text:'#ffffff', btn:'#ec4899' };
+let currentTab = 'profile';
+
+document.addEventListener('DOMContentLoaded', () => { CFUtils.initTheme(); gen(); });
+
+// ===================== HARMONY GENERATION =====================
+function gen() {
+    const b = chroma(S.base); let c = []; const h = b.hsl()[0] || 0;
+    switch(S.rule) {
+        case 'mono': c = chroma.scale([b.brighten(2.5),b,b.darken(2.5)]).mode('lch').colors(S.count); break;
+        case 'ana': c = Array.from({length:S.count}, (_,i) => chroma.hsl((h-30+i*(60/(S.count-1)))%360, b.hsl()[1], b.hsl()[2]).hex()); break;
+        case 'comp': c = chroma.scale([b, b.set('hsl.h','+180')]).mode('lch').colors(S.count); break;
+        case 'split': c = [b.hex(), ...chroma.scale([b.set('hsl.h','+150'), b.set('hsl.h','+210')]).colors(S.count-1)]; break;
+        case 'tri': c = chroma.scale([b, b.set('hsl.h','+120'), b.set('hsl.h','+240')]).mode('lch').colors(S.count); break;
+        case 'tet': c = chroma.scale([b, b.set('hsl.h','+90'), b.set('hsl.h','+180'), b.set('hsl.h','+270')]).mode('lch').colors(S.count); break;
+        case 'shade': c = chroma.scale([b,'black']).mode('lab').colors(S.count+1).slice(0,S.count); break;
+    }
+    S.pal = c;
+    document.getElementById('bc').value = S.base;
+    if (document.activeElement !== document.getElementById('hi'))
+        document.getElementById('hi').value = S.base.replace('#','').toUpperCase();
+
+    renderPalette();
+    applyPaletteToMockup();
+    renderAccessibility();
+}
+
+// ===================== PALETTE RENDER =====================
+function renderPalette() {
+    const g = document.getElementById('pg');
+    g.style.gridTemplateColumns = `repeat(${Math.min(S.count,6)},1fr)`;
+    g.innerHTML = S.pal.map((col,i) => {
+        const il = chroma(col).luminance() > 0.5;
+        const tc = il ? 'text-slate-800' : 'text-white';
+        return `<div class="group h-32 rounded-2xl overflow-hidden shadow-sm hover:-translate-y-1 hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between p-3" style="background:${col}" onclick="CFUtils.copyText('${col}')">
+            <div class="self-end opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-regular fa-copy ${tc}"></i></div>
+            <div><span class="block text-[9px] font-bold uppercase ${tc} opacity-60">Color ${i+1}</span><span class="font-mono text-xs font-bold ${tc} uppercase">${col}</span></div>
+        </div>`;
+    }).join('');
+}
+
+// ===================== MOCKUP PREVIEW =====================
+function applyPaletteToMockup() {
+    const c = S.pal;
+    // Auto-assign palette colors to mockup
+    const darkest = [...c].sort((a,b) => chroma(a).luminance() - chroma(b).luminance())[0];
+    const brightest = [...c].sort((a,b) => chroma(b).luminance() - chroma(a).luminance())[0];
+    
+    mockColors.cover = c[0] || '#6366f1';
+    mockColors.bg = chroma(darkest).luminance() < 0.15 ? darkest : chroma(c[0]).darken(3).hex();
+    mockColors.text = chroma.contrast(mockColors.bg, '#ffffff') > 3 ? '#ffffff' : '#1a1a1a';
+    mockColors.btn = c[Math.min(2, c.length-1)] || '#ec4899';
+    
+    renderMockup();
+    updateMockColorControls();
+}
+
+function renderMockup() {
+    const { bg, cover, text, btn } = mockColors;
+    const btnText = chroma.contrast(btn, '#fff') > 3 ? '#fff' : '#1a1a1a';
+    
+    // Profile view
+    document.getElementById('mock-cover').style.background = cover;
+    document.getElementById('mock-body').style.background = bg;
+    document.getElementById('mock-name').style.color = text;
+    document.getElementById('mock-stat1').style.color = text;
+    document.getElementById('mock-stat2').style.color = text;
+    document.getElementById('mock-follow-btn').style.background = btn;
+    document.getElementById('mock-follow-btn').style.color = btnText;
+    document.getElementById('mock-msg-btn').style.background = chroma(btn).alpha(0.15).css();
+    document.getElementById('mock-msg-btn').style.color = btn;
+    
+    // Website view
+    document.getElementById('mock-w-header').style.background = cover;
+    document.getElementById('mock-w-hero').style.background = cover;
+    document.getElementById('mock-w-body').style.background = bg;
+    document.getElementById('mock-w-btn').style.background = btn;
+    document.getElementById('mock-w-btn').style.color = btnText;
+    document.getElementById('mock-w-title').style.color = text;
+    document.getElementById('mock-w-num1').style.color = btn;
+    document.getElementById('mock-w-num2').style.color = btn;
+}
+
+function updateMockColorControls() {
+    ['bg','cover','text','btn'].forEach(key => {
+        const hex = mockColors[key];
+        document.getElementById('mc-'+key).value = hex;
+        document.getElementById('mc-'+key+'-dot').style.background = hex;
+        document.getElementById('mc-'+key+'-hex').textContent = hex.toUpperCase();
+    });
+}
+
+function pickMockColor(key, el) {
+    el.querySelector('input[type=color]').click();
+}
+
+function setMockColor(key, val) {
+    mockColors[key] = val;
+    renderMockup();
+    updateMockColorControls();
+}
+
+function randomMockup() {
+    const h = Math.random() * 360;
+    const isDark = Math.random() > 0.3;
+    mockColors.bg = isDark ? chroma.hsl(h, 0.2, 0.1).hex() : '#f0f2f5';
+    mockColors.cover = chroma.hsl(h, 0.7, 0.5).hex();
+    mockColors.text = isDark ? '#ffffff' : '#1a1a1a';
+    mockColors.btn = chroma.hsl((h + 120) % 360, 0.7, 0.55).hex();
+    renderMockup();
+    updateMockColorControls();
+    CFUtils.showToast('Random theme applied!');
+}
+
+function switchTab(tab) {
+    currentTab = tab;
+    document.getElementById('tab-profile').classList.toggle('active', tab === 'profile');
+    document.getElementById('tab-website').classList.toggle('active', tab === 'website');
+    document.getElementById('view-profile').style.display = tab === 'profile' ? 'block' : 'none';
+    document.getElementById('view-website').style.display = tab === 'website' ? 'block' : 'none';
+}
+
+// ===================== ACCESSIBILITY =====================
+function renderAccessibility() {
+    const c = S.pal;
+    // Contrast pairs
+    const pairs = [
+        {n:'Cover/White', b:c[0], f:'#ffffff'},
+        {n:'Bg/Text', b:mockColors.bg, f:mockColors.text},
+        {n:'Button', b:c[Math.min(2,c.length-1)]||c[0], f:'#ffffff'},
+        {n:'First/Last', b:c[0], f:c[c.length-1]}
+    ];
+    document.getElementById('cl').innerHTML = pairs.map(p => {
+        const r = chroma.contrast(p.b, p.f), ok = r >= 4.5;
+        return `<div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800/50">
+            <div class="flex items-center gap-2">
+                <div class="h-6 w-6 rounded-full" style="background:linear-gradient(135deg,${p.b} 50%,${p.f} 50%)"></div>
+                <span class="text-xs font-semibold text-slate-600 dark:text-slate-300">${p.n}</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-mono text-slate-400">${r.toFixed(2)}:1</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded ${ok?'bg-emerald-500/10 text-emerald-500':'bg-red-500/10 text-red-500'}">${ok?'AA PASS':'FAIL'}</span>
+            </div>
+        </div>`;
+    }).join('');
+
+    // CVD simulation
+    const ss = (el, fn) => { el.innerHTML = S.pal.map(col => `<div class="flex-1" style="background:${fn(col)}"></div>`).join(''); };
+    ss(document.getElementById('sp'), h => { const r=chroma(h).rgb(); return chroma.rgb(.567*r[0]+.433*r[1],.558*r[0]+.442*r[1],.242*r[1]+.758*r[2]).hex()});
+    ss(document.getElementById('sd'), h => { const r=chroma(h).rgb(); return chroma.rgb(.625*r[0]+.375*r[1],.7*r[0]+.3*r[1],.3*r[1]+.7*r[2]).hex()});
+    ss(document.getElementById('sg'), h => chroma(h).desaturate(4).hex());
+
+    // Luminance graph
+    document.getElementById('lum-graph').innerHTML = S.pal.map(col => {
+        const lum = Math.max(5, chroma(col).luminance() * 100);
+        return `<div class="flex-1 rounded-t-sm bg-slate-300 dark:bg-slate-600 relative group" style="height:${lum}%">
+            <div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-black text-white text-[8px] px-1.5 rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap">${Math.round(lum)}%</div>
+        </div>`;
+    }).join('');
+}
+</script>
+</body></html>
